@@ -1,0 +1,175 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-access-key-balance-and-messages
+      author: Tommy Sunday Henry
+      changes:
+        - addColumn:
+            tableName: partner_access_key
+            columns:
+              - column:
+                  name: balance
+                  type: NUMERIC(19,2)
+                  defaultValueNumeric: 0
+                  remarks: Prepaid balance in app.messaging.currency; changed only through balance_transaction
+                  constraints:
+                    nullable: false
+
+        - sql:
+            sql: ALTER TABLE partner_access_key ADD CONSTRAINT ck_partner_access_key_balance CHECK (balance >= 0)
+
+        - createTable:
+            tableName: message
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_message
+              - column:
+                  name: access_key_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_message_access_key
+                    references: partner_access_key(id)
+              - column:
+                  name: channel
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: recipients
+                  type: TEXT
+                  remarks: Comma-separated phone numbers or email addresses
+                  constraints:
+                    nullable: false
+              - column:
+                  name: recipient_count
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sender_id
+                  type: VARCHAR(11)
+              - column:
+                  name: subject
+                  type: VARCHAR(255)
+              - column:
+                  name: body
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: units
+                  type: INT
+                  remarks: Billable units per recipient (SMS pages; 1 for email)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: cost
+                  type: NUMERIC(19,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: failure_reason
+                  type: VARCHAR(500)
+              - column:
+                  name: client_reference
+                  type: VARCHAR(100)
+                  remarks: Optional partner reference; unique per access key to prevent double charging on retries
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: message
+            columnNames: access_key_id, client_reference
+            constraintName: uk_message_access_key_reference
+
+        - createIndex:
+            tableName: message
+            indexName: ix_message_access_key_created
+            columns:
+              - column:
+                  name: access_key_id
+              - column:
+                  name: created_at
+
+        - createTable:
+            tableName: balance_transaction
+            remarks: Ledger of every balance change. Rows are never updated or deleted.
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_balance_transaction
+              - column:
+                  name: access_key_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_balance_transaction_access_key
+                    references: partner_access_key(id)
+              - column:
+                  name: type
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: NUMERIC(19,2)
+                  remarks: Always positive; type gives the direction
+                  constraints:
+                    nullable: false
+              - column:
+                  name: balance_after
+                  type: NUMERIC(19,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: message_id
+                  type: BIGINT
+                  constraints:
+                    foreignKeyName: fk_balance_transaction_message
+                    references: message(id)
+              - column:
+                  name: created_by
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            tableName: balance_transaction
+            indexName: ix_balance_transaction_access_key_created
+            columns:
+              - column:
+                  name: access_key_id
+              - column:
+                  name: created_at

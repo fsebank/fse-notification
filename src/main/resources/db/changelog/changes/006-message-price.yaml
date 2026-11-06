@@ -1,0 +1,105 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-message-price
+      author: Tommy Sunday Henry
+      changes:
+        - createTable:
+            tableName: message_price
+            remarks: Admin-managed price per channel. A channel with no row cannot be used for sending.
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_message_price
+              - column:
+                  name: channel
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_message_price_channel
+              - column:
+                  name: unit_price
+                  type: NUMERIC(19,2)
+                  remarks: Per recipient per unit (SMS page or email), in the balance currency
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+              - column:
+                  name: created_by
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_by
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+        - sql:
+            sql: ALTER TABLE message_price ADD CONSTRAINT ck_message_price_unit_price CHECK (unit_price >= 0)
+
+        # Starting prices so sending keeps working after the upgrade; admins change them through the API.
+        - insert:
+            tableName: message_price
+            columns:
+              - column:
+                  name: channel
+                  value: SMS
+              - column:
+                  name: unit_price
+                  valueNumeric: 4.00
+              - column:
+                  name: description
+                  value: Per SMS page per recipient
+              - column:
+                  name: created_by
+                  value: system
+              - column:
+                  name: updated_by
+                  value: system
+              - column:
+                  name: created_at
+                  valueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  valueComputed: CURRENT_TIMESTAMP
+        - insert:
+            tableName: message_price
+            columns:
+              - column:
+                  name: channel
+                  value: EMAIL
+              - column:
+                  name: unit_price
+                  valueNumeric: 1.00
+              - column:
+                  name: description
+                  value: Per email per recipient
+              - column:
+                  name: created_by
+                  value: system
+              - column:
+                  name: updated_by
+                  value: system
+              - column:
+                  name: created_at
+                  valueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  valueComputed: CURRENT_TIMESTAMP

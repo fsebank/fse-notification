@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changes/001-create-admin-user.yaml
+  - include:
+      file: db/changelog/changes/002-create-partner-access-key.yaml
+  - include:
+      file: db/changelog/changes/003-admin-user-password-tracking.yaml
+  - include:
+      file: db/changelog/changes/004-drop-access-key-expiry.yaml
+  - include:
+      file: db/changelog/changes/005-access-key-balance-and-messages.yaml
+  - include:
+      file: db/changelog/changes/006-message-price.yaml

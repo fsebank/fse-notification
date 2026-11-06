@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-drop-access-key-expiry
+      author: Tommy Sunday Henry
+      comment: Access keys no longer expire; they stay valid until suspended, revoked or deleted
+      changes:
+        - dropColumn:
+            tableName: partner_access_key
+            columnName: expires_at

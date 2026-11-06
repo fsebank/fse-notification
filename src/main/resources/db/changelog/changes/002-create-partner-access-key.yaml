@@ -1,0 +1,81 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-partner-access-key
+      author: Tommy Sunday Henry
+      changes:
+        - createTable:
+            tableName: partner_access_key
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_partner_access_key
+              - column:
+                  name: client_name
+                  type: VARCHAR(150)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: client_id
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_partner_access_key_client_id
+              - column:
+                  name: client_secret_hash
+                  type: VARCHAR(128)
+                  remarks: SHA-256 hex digest of the client secret; the raw secret is never stored
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  defaultValue: ACTIVE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expires_at
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: last_used_at
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: created_by
+                  type: VARCHAR(100)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: partner_access_key_ip
+            remarks: Optional IP whitelist (single address or CIDR). No rows means any IP is allowed.
+            columns:
+              - column:
+                  name: access_key_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_partner_access_key_ip_key
+                    references: partner_access_key(id)
+                    deleteCascade: true
+              - column:
+                  name: ip_address
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+
+        - addPrimaryKey:
+            tableName: partner_access_key_ip
+            columnNames: access_key_id, ip_address
+            constraintName: pk_partner_access_key_ip
