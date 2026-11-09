@@ -5,8 +5,8 @@ import com.fse.fsenotification.modules.message.enums.MessageChannel;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Placeholder that only logs. Used for a channel until a real {@link MessageSender} bean for it is registered;
- * messages are marked SENT and charged, but nothing leaves the system.
+ * Fallback for channels without a configured delivery implementation. It must fail so undelivered
+ * messages are not reported as sent or charged.
  */
 @Slf4j
 public class LoggingMessageSender implements MessageSender {
@@ -18,13 +18,13 @@ public class LoggingMessageSender implements MessageSender {
     }
 
     @Override
-    public MessageChannel channel() {
-        return channel;
+    public boolean supports(MessageChannel requestedChannel) {
+        return channel == requestedChannel;
     }
 
     @Override
     public void send(Message message) {
-        log.info("[{} placeholder - not delivered] message {} to {} recipient(s): {}", channel, message.getId(),
-                message.getRecipientCount(), message.getRecipientList());
+        log.warn("No delivery provider configured for {} message {}", channel, message.getId());
+        throw new MessageDeliveryException("No delivery provider configured for " + channel);
     }
 }

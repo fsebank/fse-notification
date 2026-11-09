@@ -63,12 +63,15 @@ public class MessageServiceImpl implements MessageService {
         this.pricing = pricing;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         for (MessageSender sender : configuredSenders) {
-            senders.put(sender.channel(), sender);
+            for (MessageChannel channel : MessageChannel.values()) {
+                if (sender.supports(channel) && senders.putIfAbsent(channel, sender) != null) {
+                    throw new IllegalStateException("Multiple message senders support " + channel);
+                }
+            }
         }
         for (MessageChannel channel : MessageChannel.values()) {
             if (!senders.containsKey(channel)) {
-                log.warn("No {} provider configured; {} messages will be charged and logged but NOT delivered",
-                        channel, channel);
+                log.warn("No message sender registered for {}; delivery will fail", channel);
                 senders.put(channel, new LoggingMessageSender(channel));
             }
         }
