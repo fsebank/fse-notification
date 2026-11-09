@@ -1,5 +1,8 @@
-package com.fse.fsenotification.modules.message;
+package com.fse.fsenotification.modules.message.dto;
 
+import com.fse.fsenotification.modules.message.domain.Message;
+import com.fse.fsenotification.modules.message.enums.MessageChannel;
+import com.fse.fsenotification.modules.message.enums.MessageStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -46,7 +49,7 @@ public final class MessageDtos {
                                   List<String> recipients, int recipientCount, int units, BigDecimal cost,
                                   String currency, String reference, String failureReason, Instant createdAt) {
 
-        static MessageResponse from(Message message, String currency) {
+        public static MessageResponse from(Message message, String currency) {
             return new MessageResponse(message.getId(), message.getChannel(), message.getStatus(),
                     message.getRecipientList(), message.getRecipientCount(), message.getUnits(), message.getCost(),
                     currency, message.getClientReference(), message.getFailureReason(), message.getCreatedAt());

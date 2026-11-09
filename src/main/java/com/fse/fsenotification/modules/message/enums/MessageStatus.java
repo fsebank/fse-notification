@@ -1,4 +1,4 @@
-package com.fse.fsenotification.modules.message;
+package com.fse.fsenotification.modules.message.enums;
 
 public enum MessageStatus {
     /** Charged and handed to the sender. */

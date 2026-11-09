@@ -1,5 +1,7 @@
-package com.fse.fsenotification.modules.message;
+package com.fse.fsenotification.modules.message.dto;
 
+import com.fse.fsenotification.modules.message.enums.MessageChannel;
+import com.fse.fsenotification.modules.message.domain.MessagePrice;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
@@ -29,7 +31,7 @@ public final class MessagePriceDtos {
                                        String description, String createdBy, String updatedBy, Instant createdAt,
                                        Instant updatedAt) {
 
-        static MessagePriceResponse from(MessagePrice price, String currency) {
+        public static MessagePriceResponse from(MessagePrice price, String currency) {
             return new MessagePriceResponse(price.getId(), price.getChannel(), price.getUnitPrice(), currency,
                     price.getDescription(), price.getCreatedBy(), price.getUpdatedBy(), price.getCreatedAt(),
                     price.getUpdatedAt());

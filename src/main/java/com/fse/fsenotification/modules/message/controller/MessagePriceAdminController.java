@@ -1,8 +1,9 @@
-package com.fse.fsenotification.modules.message;
+package com.fse.fsenotification.modules.message.controller;
 
-import com.fse.fsenotification.modules.message.MessagePriceDtos.CreateMessagePriceRequest;
-import com.fse.fsenotification.modules.message.MessagePriceDtos.MessagePriceResponse;
-import com.fse.fsenotification.modules.message.MessagePriceDtos.UpdateMessagePriceRequest;
+import com.fse.fsenotification.modules.message.dto.MessagePriceDtos.CreateMessagePriceRequest;
+import com.fse.fsenotification.modules.message.dto.MessagePriceDtos.MessagePriceResponse;
+import com.fse.fsenotification.modules.message.dto.MessagePriceDtos.UpdateMessagePriceRequest;
+import com.fse.fsenotification.modules.message.service.MessagePriceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

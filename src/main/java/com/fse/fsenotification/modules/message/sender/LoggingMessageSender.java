@@ -1,7 +1,7 @@
 package com.fse.fsenotification.modules.message.sender;
 
-import com.fse.fsenotification.modules.message.Message;
-import com.fse.fsenotification.modules.message.MessageChannel;
+import com.fse.fsenotification.modules.message.domain.Message;
+import com.fse.fsenotification.modules.message.enums.MessageChannel;
 import lombok.extern.slf4j.Slf4j;
 
 /**

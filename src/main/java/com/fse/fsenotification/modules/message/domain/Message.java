@@ -1,5 +1,7 @@
-package com.fse.fsenotification.modules.message;
+package com.fse.fsenotification.modules.message.domain;
 
+import com.fse.fsenotification.modules.message.enums.MessageChannel;
+import com.fse.fsenotification.modules.message.enums.MessageStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

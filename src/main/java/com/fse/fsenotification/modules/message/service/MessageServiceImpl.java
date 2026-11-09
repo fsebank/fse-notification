@@ -1,14 +1,19 @@
-package com.fse.fsenotification.modules.message;
+package com.fse.fsenotification.modules.message.service;
 
 import com.fse.fsenotification.accesskey.BalanceService;
 import com.fse.fsenotification.common.BadRequestException;
 import com.fse.fsenotification.common.ConflictException;
 import com.fse.fsenotification.common.PageResponse;
 import com.fse.fsenotification.common.ResourceNotFoundException;
-import com.fse.fsenotification.modules.message.MessageDtos.MessageResponse;
-import com.fse.fsenotification.modules.message.MessageDtos.SendEmailRequest;
-import com.fse.fsenotification.modules.message.MessageDtos.SendMessageResponse;
-import com.fse.fsenotification.modules.message.MessageDtos.SendSmsRequest;
+import com.fse.fsenotification.modules.message.*;
+import com.fse.fsenotification.modules.message.domain.Message;
+import com.fse.fsenotification.modules.message.dto.MessageDtos.MessageResponse;
+import com.fse.fsenotification.modules.message.dto.MessageDtos.SendEmailRequest;
+import com.fse.fsenotification.modules.message.dto.MessageDtos.SendMessageResponse;
+import com.fse.fsenotification.modules.message.dto.MessageDtos.SendSmsRequest;
+import com.fse.fsenotification.modules.message.enums.MessageChannel;
+import com.fse.fsenotification.modules.message.enums.MessageStatus;
+import com.fse.fsenotification.modules.message.repository.MessageRepository;
 import com.fse.fsenotification.modules.message.sender.LoggingMessageSender;
 import com.fse.fsenotification.modules.message.sender.MessageSender;
 import com.fse.fsenotification.security.PartnerPrincipal;

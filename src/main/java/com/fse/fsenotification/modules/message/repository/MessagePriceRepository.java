@@ -1,5 +1,7 @@
-package com.fse.fsenotification.modules.message;
+package com.fse.fsenotification.modules.message.repository;
 
+import com.fse.fsenotification.modules.message.domain.MessagePrice;
+import com.fse.fsenotification.modules.message.enums.MessageChannel;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -1,5 +1,6 @@
-package com.fse.fsenotification.modules.message;
+package com.fse.fsenotification.modules.message.repository;
 
+import com.fse.fsenotification.modules.message.domain.Message;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

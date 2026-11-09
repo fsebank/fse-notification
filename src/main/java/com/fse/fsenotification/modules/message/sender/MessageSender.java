@@ -1,7 +1,7 @@
 package com.fse.fsenotification.modules.message.sender;
 
-import com.fse.fsenotification.modules.message.Message;
-import com.fse.fsenotification.modules.message.MessageChannel;
+import com.fse.fsenotification.modules.message.domain.Message;
+import com.fse.fsenotification.modules.message.enums.MessageChannel;
 
 /**
  * Delivers a message through a provider. Implement one per channel (e.g. Termii/Infobip for SMS, SMTP/SES for

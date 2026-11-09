@@ -1,12 +1,15 @@
-package com.fse.fsenotification.modules.message;
+package com.fse.fsenotification.modules.message.service;
 
 import com.fse.fsenotification.accesskey.BalanceService;
 import com.fse.fsenotification.common.ConflictException;
 import com.fse.fsenotification.common.ResourceNotFoundException;
 import com.fse.fsenotification.common.ServiceUnavailableException;
-import com.fse.fsenotification.modules.message.MessagePriceDtos.CreateMessagePriceRequest;
-import com.fse.fsenotification.modules.message.MessagePriceDtos.MessagePriceResponse;
-import com.fse.fsenotification.modules.message.MessagePriceDtos.UpdateMessagePriceRequest;
+import com.fse.fsenotification.modules.message.enums.MessageChannel;
+import com.fse.fsenotification.modules.message.domain.MessagePrice;
+import com.fse.fsenotification.modules.message.repository.MessagePriceRepository;
+import com.fse.fsenotification.modules.message.dto.MessagePriceDtos.CreateMessagePriceRequest;
+import com.fse.fsenotification.modules.message.dto.MessagePriceDtos.MessagePriceResponse;
+import com.fse.fsenotification.modules.message.dto.MessagePriceDtos.UpdateMessagePriceRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

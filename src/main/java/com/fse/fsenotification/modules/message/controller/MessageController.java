@@ -1,10 +1,11 @@
-package com.fse.fsenotification.modules.message;
+package com.fse.fsenotification.modules.message.controller;
 
 import com.fse.fsenotification.common.PageResponse;
-import com.fse.fsenotification.modules.message.MessageDtos.MessageResponse;
-import com.fse.fsenotification.modules.message.MessageDtos.SendEmailRequest;
-import com.fse.fsenotification.modules.message.MessageDtos.SendMessageResponse;
-import com.fse.fsenotification.modules.message.MessageDtos.SendSmsRequest;
+import com.fse.fsenotification.modules.message.dto.MessageDtos.MessageResponse;
+import com.fse.fsenotification.modules.message.dto.MessageDtos.SendEmailRequest;
+import com.fse.fsenotification.modules.message.dto.MessageDtos.SendMessageResponse;
+import com.fse.fsenotification.modules.message.dto.MessageDtos.SendSmsRequest;
+import com.fse.fsenotification.modules.message.service.MessageService;
 import com.fse.fsenotification.security.PartnerPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
