@@ -13,7 +13,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.Map;
 
-/** Routes SMS messages to the provider selected by the {@code sms.provider} setting. */
+/** Routes messages to the provider selected for their channel. */
 @Component
 @Slf4j
 public class MessageDeliveryHelper implements MessageSender {
@@ -21,15 +21,18 @@ public class MessageDeliveryHelper implements MessageSender {
     private final Map<String, EmailMessageService> emailProviders;
     private final String smsProviderName;
     private final String emailProviderName;
+    private final boolean emailEnabled;
 
     public MessageDeliveryHelper(Map<String, MessageService> smsProviders,
                                  Map<String, EmailMessageService> emailProviders,
                                  @Value("${sms.provider:AFRICASTALKINGSMS}") String smsProviderName,
-                                 @Value("${email.provider:SMTP}") String emailProviderName) {
+                                 @Value("${email.provider:SMTP}") String emailProviderName,
+                                 @Value("${app.notification.email.enabled:false}") boolean emailEnabled) {
         this.smsProviders = smsProviders;
         this.emailProviders = emailProviders;
         this.smsProviderName = smsProviderName;
         this.emailProviderName = emailProviderName;
+        this.emailEnabled = emailEnabled;
     }
 
     @Override
@@ -69,13 +72,17 @@ public class MessageDeliveryHelper implements MessageSender {
     }
 
     private void sendEmail(Message message) {
+        if (!emailEnabled) {
+            throw new MessageDeliveryException("Email delivery is disabled; set EMAIL_ENABLED=true to enable it");
+        }
         EmailMessageService provider = emailProviders.get(emailProviderName);
         if (provider == null) {
             throw new MessageDeliveryException("Email provider '%s' is not configured. Available providers: %s"
                     .formatted(emailProviderName, emailProviders.keySet()));
         }
 
-        provider.sendEmail(message.getRecipientList(), message.getSubject(), message.getBody());
+        provider.sendEmail(message.getRecipientList(), message.getSubject(), message.getBody(),
+                message.getAttachments());
         log.info("Email message {} accepted by {} for {} recipient(s)", message.getId(), emailProviderName,
                 message.getRecipientCount());
     }

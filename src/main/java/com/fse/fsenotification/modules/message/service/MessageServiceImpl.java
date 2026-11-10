@@ -7,6 +7,9 @@ import com.fse.fsenotification.common.PageResponse;
 import com.fse.fsenotification.common.ResourceNotFoundException;
 import com.fse.fsenotification.modules.message.*;
 import com.fse.fsenotification.modules.message.domain.Message;
+import com.fse.fsenotification.modules.message.domain.MessageAttachment;
+import com.fse.fsenotification.modules.message.dto.MessageDtos;
+import com.fse.fsenotification.modules.message.dto.MessageDtos.EmailAttachmentRequest;
 import com.fse.fsenotification.modules.message.dto.MessageDtos.MessageResponse;
 import com.fse.fsenotification.modules.message.dto.MessageDtos.SendEmailRequest;
 import com.fse.fsenotification.modules.message.dto.MessageDtos.SendMessageResponse;
@@ -22,9 +25,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.util.Base64;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -98,6 +103,7 @@ public class MessageServiceImpl implements MessageService {
         message.setRecipientList(List.copyOf(recipients));
         message.setSubject(request.subject().trim());
         message.setBody(request.body());
+        message.setAttachments(decodeAttachments(request.attachments()));
         message.setUnits(1);
         return dispatch(partner, message, request.reference());
     }
@@ -195,6 +201,43 @@ public class MessageServiceImpl implements MessageService {
     private static String describe(Message message) {
         return "%s to %d recipient(s), %d unit(s), message #%d".formatted(message.getChannel(),
                 message.getRecipientCount(), message.getUnits(), message.getId());
+    }
+
+    private static List<MessageAttachment> decodeAttachments(List<EmailAttachmentRequest> attachments) {
+        List<MessageAttachment> decoded = new java.util.ArrayList<>();
+        int totalBytes = 0;
+        for (EmailAttachmentRequest attachment : attachments) {
+            if (attachment == null) {
+                throw new BadRequestException("Email attachment entries must not be null");
+            }
+            String fileName = attachment.fileName().trim();
+            if (fileName.isEmpty() || fileName.contains("/") || fileName.contains("\\")
+                    || fileName.contains("\r") || fileName.contains("\n")) {
+                throw new BadRequestException("Attachment file names must not contain paths or line breaks");
+            }
+            String contentType;
+            try {
+                contentType = MimeTypeUtils.parseMimeType(attachment.contentType().trim()).toString();
+            } catch (IllegalArgumentException ex) {
+                throw new BadRequestException("Attachment content type must be a valid MIME type");
+            }
+
+            byte[] content;
+            try {
+                content = Base64.getDecoder().decode(attachment.contentBase64());
+            } catch (IllegalArgumentException ex) {
+                throw new BadRequestException("Attachment contentBase64 must be valid Base64");
+            }
+            if (content.length == 0 || content.length > MessageDtos.MAX_EMAIL_ATTACHMENT_BYTES) {
+                throw new BadRequestException("Each email attachment must be between 1 byte and 5 MB");
+            }
+            totalBytes += content.length;
+            if (totalBytes > MessageDtos.MAX_EMAIL_ATTACHMENTS_TOTAL_BYTES) {
+                throw new BadRequestException("Combined email attachments must not exceed 10 MB");
+            }
+            decoded.add(new MessageAttachment(fileName, contentType, content));
+        }
+        return List.copyOf(decoded);
     }
 
     private static String truncate(String value) {

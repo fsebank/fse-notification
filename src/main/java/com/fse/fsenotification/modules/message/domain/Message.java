@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,6 +20,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -56,6 +58,9 @@ public class Message {
 
     @Column(nullable = false, updatable = false, columnDefinition = "TEXT")
     private String body;
+
+    @Transient
+    private List<MessageAttachment> attachments = new ArrayList<>();
 
     /** Billable units per recipient: SMS pages, or 1 for email. */
     @Column(nullable = false, updatable = false)
