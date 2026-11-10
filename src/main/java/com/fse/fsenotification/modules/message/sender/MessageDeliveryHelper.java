@@ -6,8 +6,8 @@ import com.fse.fsenotification.integration.email.messaging.service.EmailMessageS
 import com.fse.fsenotification.integration.sms.messaging.service.MessageService;
 import com.fse.fsenotification.modules.message.domain.Message;
 import com.fse.fsenotification.modules.message.enums.MessageChannel;
+import com.fse.fsenotification.util.NotificationProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -19,20 +19,17 @@ import java.util.Map;
 public class MessageDeliveryHelper implements MessageSender {
     private final Map<String, MessageService> smsProviders;
     private final Map<String, EmailMessageService> emailProviders;
-    private final String smsProviderName;
-    private final String emailProviderName;
-    private final boolean emailEnabled;
+    private final NotificationProperties properties;
 
     public MessageDeliveryHelper(Map<String, MessageService> smsProviders,
                                  Map<String, EmailMessageService> emailProviders,
-                                 @Value("${sms.provider:AFRICASTALKINGSMS}") String smsProviderName,
-                                 @Value("${email.provider:SMTP}") String emailProviderName,
-                                 @Value("${app.notification.email.enabled:false}") boolean emailEnabled) {
+                                 NotificationProperties properties) {
         this.smsProviders = smsProviders;
         this.emailProviders = emailProviders;
-        this.smsProviderName = smsProviderName;
-        this.emailProviderName = emailProviderName;
-        this.emailEnabled = emailEnabled;
+        this.properties = properties;
+        log.info("Notification delivery configured: SMS provider={}, email provider={}, email enabled={}",
+                properties.getSms().getProvider(), properties.getEmail().getProvider(),
+                properties.getEmail().isEnabled());
     }
 
     @Override
@@ -49,6 +46,7 @@ public class MessageDeliveryHelper implements MessageSender {
     }
 
     private void sendSms(Message message) {
+        String smsProviderName = properties.getSms().getProvider();
         MessageService provider = smsProviders.get(smsProviderName);
         if (provider == null) {
             throw new MessageDeliveryException("SMS provider '%s' is not configured. Available providers: %s"
@@ -72,9 +70,11 @@ public class MessageDeliveryHelper implements MessageSender {
     }
 
     private void sendEmail(Message message) {
-        if (!emailEnabled) {
+        NotificationProperties.Email email = properties.getEmail();
+        if (!email.isEnabled()) {
             throw new MessageDeliveryException("Email delivery is disabled; set EMAIL_ENABLED=true to enable it");
         }
+        String emailProviderName = email.getProvider();
         EmailMessageService provider = emailProviders.get(emailProviderName);
         if (provider == null) {
             throw new MessageDeliveryException("Email provider '%s' is not configured. Available providers: %s"

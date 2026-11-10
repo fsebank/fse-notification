@@ -2,44 +2,44 @@ package com.fse.fsenotification.integration.email.messaging.service;
 
 import com.fse.fsenotification.modules.message.domain.MessageAttachment;
 import com.fse.fsenotification.modules.message.sender.MessageDeliveryException;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.mail.javamail.JavaMailSender;
+import com.fse.fsenotification.util.NotificationProperties;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Properties;
 
 @Service("SMTP")
-@ConditionalOnProperty(name = "email.provider", havingValue = "SMTP", matchIfMissing = true)
+@ConditionalOnProperty(name = "app.notification.email.provider", havingValue = "SMTP", matchIfMissing = true)
 public class SmtpEmailMessageService implements EmailMessageService {
 
-    private final ObjectProvider<JavaMailSender> mailSenders;
-    private final String host;
-    private final String fromAddress;
+    private final JavaMailSenderImpl mailSender;
+    private final NotificationProperties.Email email;
 
-    public SmtpEmailMessageService(ObjectProvider<JavaMailSender> mailSenders,
-                                   @Value("${spring.mail.host:}") String host,
-                                   @Value("${app.notification.email.from:}") String fromAddress) {
-        this.mailSenders = mailSenders;
-        this.host = host;
-        this.fromAddress = fromAddress;
+    public SmtpEmailMessageService(NotificationProperties properties) {
+        this.email = properties.getEmail();
+        NotificationProperties.Smtp smtp = email.getSmtp();
+        this.mailSender = new JavaMailSenderImpl();
+        this.mailSender.setHost(smtp.getHost());
+        this.mailSender.setPort(smtp.getPort());
+        this.mailSender.setUsername(smtp.getUsername());
+        this.mailSender.setPassword(smtp.getPassword());
+        Properties mailProperties = this.mailSender.getJavaMailProperties();
+        mailProperties.put("mail.smtp.auth", Boolean.toString(smtp.isAuth()));
+        mailProperties.put("mail.smtp.starttls.enable", Boolean.toString(smtp.isStarttls()));
     }
 
     @Override
     public void sendEmail(List<String> recipients, String subject, String body,
                           List<MessageAttachment> attachments) {
-        if (!StringUtils.hasText(host)) {
+        if (!StringUtils.hasText(email.getSmtp().getHost())) {
             throw new MessageDeliveryException("SMTP host is not configured");
         }
-        if (!StringUtils.hasText(fromAddress)) {
+        if (!StringUtils.hasText(email.getFrom())) {
             throw new MessageDeliveryException("Email sender address is not configured");
         }
-        JavaMailSender mailSender = mailSenders.getIfAvailable();
-        if (mailSender == null) {
-            throw new MessageDeliveryException("SMTP mail sender is unavailable; check the SMTP configuration");
-        }
-        SmtpEmailDelivery.send(mailSender, fromAddress, "SMTP", recipients, subject, body, attachments);
+        SmtpEmailDelivery.send(mailSender, email.getFrom(), "SMTP", recipients, subject, body, attachments);
     }
 }

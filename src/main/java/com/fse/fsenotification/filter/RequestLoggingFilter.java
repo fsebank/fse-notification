@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 
 @Component
 public class RequestLoggingFilter extends OncePerRequestFilter {
@@ -22,16 +24,17 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        long start = System.currentTimeMillis();
+        Instant start = Instant.now();
+        String method = request.getMethod();
+        String url = request.getRequestURL().toString();
 
-        filterChain.doFilter(request, response);
-
-        long duration = System.currentTimeMillis() - start;
-
-        log.info("endpoint={} method={} status={} duration={}ms",
-                request.getRequestURI(),
-                request.getMethod(),
-                response.getStatus(),
-                duration);
+        log.info("HTTP request started: {} {}", method, url);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            long duration = Duration.between(start, Instant.now()).toMillis();
+            log.info("HTTP request completed: {} {} status={} duration={}ms",
+                    method, url, response.getStatus(), duration);
+        }
     }
 }

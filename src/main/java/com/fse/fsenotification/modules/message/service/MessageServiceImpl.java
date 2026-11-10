@@ -152,7 +152,8 @@ public class MessageServiceImpl implements MessageService {
             senders.get(saved.getChannel()).send(saved);
         } catch (RuntimeException ex) {
             failure = truncate(ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage());
-            log.warn("{} message {} for {} failed: {}", saved.getChannel(), saved.getId(), partner.clientId(), failure);
+            log.warn("{} message {} for {} failed: {}", saved.getChannel(), saved.getId(), partner.clientId(),
+                    failure, ex);
         }
 
         // 3. Record the outcome; refund on failure.
