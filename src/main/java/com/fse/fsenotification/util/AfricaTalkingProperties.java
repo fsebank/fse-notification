@@ -11,5 +11,5 @@ public class AfricaTalkingProperties {
     private String baseUrl;
     private String username;
     private String apiKey;
+    private String senderName = "FSE Bank";
 }
-

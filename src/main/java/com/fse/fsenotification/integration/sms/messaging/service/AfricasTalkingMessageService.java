@@ -9,7 +9,6 @@ import com.fse.fsenotification.modules.message.sender.MessageDeliveryException;
 import com.fse.fsenotification.util.AfricaTalkingProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -19,9 +18,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class AfricasTalkingMessageService implements MessageService {
-
-    @Value("${sms.sendername}")
-    private String senderName;
 
     private final AfricaTalkingProperties properties;
 
@@ -33,7 +29,7 @@ public class AfricasTalkingMessageService implements MessageService {
 
         String senderId = sendSMSRequestDto.getSender();
         if (senderId == null || senderId.isBlank()) {
-            senderId = senderName;
+            senderId = properties.getSenderName();
         }
 
         String[] formattedRecipients = formatRecipients(sendSMSRequestDto.getRecipient());
