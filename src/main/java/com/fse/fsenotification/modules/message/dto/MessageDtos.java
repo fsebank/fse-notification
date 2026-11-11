@@ -6,17 +6,27 @@ import com.fse.fsenotification.modules.message.enums.MessageStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class MessageDtos {
 
     /** Max recipients per request, to bound cost and provider payload size. */
     public static final int MAX_RECIPIENTS = 100;
+    public static final int MAX_EMAIL_ATTACHMENTS = 5;
+    public static final int MAX_EMAIL_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+    public static final int MAX_EMAIL_ATTACHMENTS_TOTAL_BYTES = 10 * 1024 * 1024;
+    private static final int MAX_EMAIL_ATTACHMENT_BASE64_CHARS =
+            4 * ((MAX_EMAIL_ATTACHMENT_BYTES + 2) / 3);
 
     private MessageDtos() {
     }
@@ -42,7 +52,41 @@ public final class MessageDtos {
             @NotEmpty @Size(max = MAX_RECIPIENTS) List<@NotBlank @Email @Size(max = 254) String> recipients,
             @NotBlank @Size(max = 255) String subject,
             @NotBlank @Size(max = 100_000) String body,
-            @Size(max = 100) String reference) {
+            @Size(max = 100) String reference,
+            @Size(max = MAX_EMAIL_ATTACHMENTS)
+            List<@NotNull @jakarta.validation.Valid EmailAttachmentRequest> attachments) {
+
+        public SendEmailRequest {
+            attachments = attachments == null ? List.of()
+                    : Collections.unmodifiableList(new ArrayList<>(attachments));
+        }
+    }
+
+    /** Multipart form fields for sending email with uploaded file attachments. */
+    @Data
+    @NoArgsConstructor
+    public static class SendEmailForm {
+        @NotEmpty
+        @Size(max = MAX_RECIPIENTS)
+        private List<@NotBlank @Email @Size(max = 254) String> recipients = new ArrayList<>();
+
+        @NotBlank
+        @Size(max = 255)
+        private String subject;
+
+        @NotBlank
+        @Size(max = 100_000)
+        private String body;
+
+        @Size(max = 100)
+        private String reference;
+    }
+
+    /** An attachment sent as Base64 in a JSON email request. */
+    public record EmailAttachmentRequest(
+            @NotBlank @Size(max = 255) String fileName,
+            @NotBlank @Size(max = 100) String contentType,
+            @NotBlank @Size(max = MAX_EMAIL_ATTACHMENT_BASE64_CHARS) String contentBase64) {
     }
 
     public record MessageResponse(Long messageId, MessageChannel channel, MessageStatus status,
