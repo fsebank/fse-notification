@@ -46,7 +46,7 @@ public class MessageDeliveryHelper implements MessageSender {
     }
 
     private void sendSms(Message message) {
-        String smsProviderName = properties.getSms().getProvider();
+        String smsProviderName = properties.getSms().getProvider(); //todo:get provider from db configuration instead
         MessageService provider = smsProviders.get(smsProviderName);
         if (provider == null) {
             throw new MessageDeliveryException("SMS provider '%s' is not configured. Available providers: %s"
@@ -74,7 +74,7 @@ public class MessageDeliveryHelper implements MessageSender {
         if (!email.isEnabled()) {
             throw new MessageDeliveryException("Email delivery is disabled; set EMAIL_ENABLED=true to enable it");
         }
-        String emailProviderName = email.getProvider();
+        String emailProviderName = email.getProvider(); //todo:get provider from db configuration instead
         EmailMessageService provider = emailProviders.get(emailProviderName);
         if (provider == null) {
             throw new MessageDeliveryException("Email provider '%s' is not configured. Available providers: %s"
