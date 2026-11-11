@@ -35,6 +35,7 @@ public class AfricasTalkingMessageService implements MessageService {
         String[] formattedRecipients = formatRecipients(sendSMSRequestDto.getRecipient());
         log.info("Sending SMS through Africa's Talking to {} recipient(s)", formattedRecipients.length);
         try {
+            log.info("Africa's Talking SMS request: URL={}, body={}", properties.getBaseUrl(), sendSMSRequestDto);
             List<Recipient> response = sms.send(sendSMSRequestDto.getMessage(), senderId, formattedRecipients, false);
             if (response == null || response.size() != formattedRecipients.length) {
                 throw new MessageDeliveryException("Africa's Talking returned an incomplete SMS response");
