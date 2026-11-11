@@ -23,7 +23,6 @@ public class NotificationProperties {
         private boolean enabled;
         private String from = "";
         private Smtp smtp = new Smtp();
-        private Mailtrap mailtrap = new Mailtrap();
     }
 
     @Data
@@ -36,13 +35,4 @@ public class NotificationProperties {
         private boolean starttls = true;
     }
 
-    @Data
-    public static class Mailtrap {
-        private String host = "sandbox.smtp.mailtrap.io";
-        private int port = 2525;
-        private String username = "";
-        private String password = "";
-        private String from = "";
-        private boolean starttls = true;
-    }
 }

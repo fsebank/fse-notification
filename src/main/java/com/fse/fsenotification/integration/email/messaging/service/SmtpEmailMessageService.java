@@ -2,8 +2,8 @@ package com.fse.fsenotification.integration.email.messaging.service;
 
 import com.fse.fsenotification.modules.message.domain.MessageAttachment;
 import com.fse.fsenotification.modules.message.sender.MessageDeliveryException;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import com.fse.fsenotification.util.NotificationProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
