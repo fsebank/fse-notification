@@ -95,6 +95,12 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public SendMessageResponse sendEmail(PartnerPrincipal partner, SendEmailRequest request) {
+        return sendEmail(partner, request, decodeAttachments(request.attachments()));
+    }
+
+    @Override
+    public SendMessageResponse sendEmail(PartnerPrincipal partner, SendEmailRequest request,
+                                         List<MessageAttachment> attachments) {
         Set<String> recipients = new LinkedHashSet<>();
         request.recipients().forEach(r -> recipients.add(r.trim().toLowerCase(Locale.ROOT)));
 
@@ -103,7 +109,7 @@ public class MessageServiceImpl implements MessageService {
         message.setRecipientList(List.copyOf(recipients));
         message.setSubject(request.subject().trim());
         message.setBody(request.body());
-        message.setAttachments(decodeAttachments(request.attachments()));
+        message.setAttachments(validateAttachments(attachments));
         message.setUnits(1);
         return dispatch(partner, message, request.reference());
     }
@@ -206,29 +212,43 @@ public class MessageServiceImpl implements MessageService {
 
     private static List<MessageAttachment> decodeAttachments(List<EmailAttachmentRequest> attachments) {
         List<MessageAttachment> decoded = new java.util.ArrayList<>();
-        int totalBytes = 0;
         for (EmailAttachmentRequest attachment : attachments) {
             if (attachment == null) {
                 throw new BadRequestException("Email attachment entries must not be null");
             }
-            String fileName = attachment.fileName().trim();
-            if (fileName.isEmpty() || fileName.contains("/") || fileName.contains("\\")
-                    || fileName.contains("\r") || fileName.contains("\n")) {
-                throw new BadRequestException("Attachment file names must not contain paths or line breaks");
-            }
-            String contentType;
-            try {
-                contentType = MimeTypeUtils.parseMimeType(attachment.contentType().trim()).toString();
-            } catch (IllegalArgumentException ex) {
-                throw new BadRequestException("Attachment content type must be a valid MIME type");
-            }
-
             byte[] content;
             try {
                 content = Base64.getDecoder().decode(attachment.contentBase64());
             } catch (IllegalArgumentException ex) {
                 throw new BadRequestException("Attachment contentBase64 must be valid Base64");
             }
+            decoded.add(new MessageAttachment(attachment.fileName(), attachment.contentType(), content));
+        }
+        return List.copyOf(decoded);
+    }
+
+    private static List<MessageAttachment> validateAttachments(List<MessageAttachment> attachments) {
+        if (attachments == null || attachments.size() > MessageDtos.MAX_EMAIL_ATTACHMENTS) {
+            throw new BadRequestException("An email can have at most 5 attachments");
+        }
+        List<MessageAttachment> validated = new java.util.ArrayList<>();
+        int totalBytes = 0;
+        for (MessageAttachment attachment : attachments) {
+            if (attachment == null || attachment.content() == null) {
+                throw new BadRequestException("Email attachment entries and contents must not be null");
+            }
+            String fileName = attachment.fileName() == null ? "" : attachment.fileName().trim();
+            if (fileName.isEmpty() || fileName.contains("/") || fileName.contains("\\")
+                    || fileName.contains("\r") || fileName.contains("\n")) {
+                throw new BadRequestException("Attachment file names must not contain paths or line breaks");
+            }
+            String contentType;
+            try {
+                contentType = MimeTypeUtils.parseMimeType(attachment.contentType()).toString();
+            } catch (IllegalArgumentException ex) {
+                throw new BadRequestException("Attachment content type must be a valid MIME type");
+            }
+            byte[] content = attachment.content();
             if (content.length == 0 || content.length > MessageDtos.MAX_EMAIL_ATTACHMENT_BYTES) {
                 throw new BadRequestException("Each email attachment must be between 1 byte and 5 MB");
             }
@@ -236,9 +256,9 @@ public class MessageServiceImpl implements MessageService {
             if (totalBytes > MessageDtos.MAX_EMAIL_ATTACHMENTS_TOTAL_BYTES) {
                 throw new BadRequestException("Combined email attachments must not exceed 10 MB");
             }
-            decoded.add(new MessageAttachment(fileName, contentType, content));
+            validated.add(new MessageAttachment(fileName, contentType, content));
         }
-        return List.copyOf(decoded);
+        return List.copyOf(validated);
     }
 
     private static String truncate(String value) {

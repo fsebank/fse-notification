@@ -8,6 +8,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.Instant;
 import java.util.List;
@@ -63,6 +64,13 @@ public class GlobalExceptionHandler {
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .toList();
         return build(HttpStatus.BAD_REQUEST, "Validation failed", request, details);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleUploadTooLarge(MaxUploadSizeExceededException ex,
+                                                         HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "Email attachment exceeds the 5 MB per-file or 12 MB request limit",
+                request, List.of());
     }
 
     private ResponseEntity<ApiError> build(HttpStatus status, String message, HttpServletRequest request,
