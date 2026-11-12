@@ -28,7 +28,7 @@ final class SmtpEmailDelivery {
             helper.setFrom(fromAddress);
             helper.setBcc(recipients.toArray(String[]::new));
             helper.setSubject(subject);
-            helper.setText(body, false);
+            helper.setText(body, true);
             for (MessageAttachment attachment : attachments) {
                 helper.addAttachment(attachment.fileName(), new ByteArrayResource(attachment.content()),
                         attachment.contentType());
