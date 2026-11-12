@@ -26,7 +26,8 @@ final class SmtpEmailDelivery {
             MimeMessageHelper helper = new MimeMessageHelper(message, !attachments.isEmpty(),
                     StandardCharsets.UTF_8.name());
             helper.setFrom(fromAddress);
-            helper.setBcc(recipients.toArray(String[]::new));
+//            helper.setBcc(recipients.toArray(String[]::new));
+            helper.setTo(recipients.toArray(String[]::new));
             helper.setSubject(subject);
             helper.setText(body, true);
             for (MessageAttachment attachment : attachments) {
