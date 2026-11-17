@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class SendSMSRequestDto {
+    private Long messageId;
     private String message;
     private String sender;
     private String recipient;

@@ -32,7 +32,7 @@ public class SmtpEmailMessageService implements EmailMessageService {
     }
 
     @Override
-    public void sendEmail(List<String> recipients, String subject, String body,
+    public void sendEmail(Long messageId, List<String> recipients, String subject, String body,
                           List<MessageAttachment> attachments) {
         if (!StringUtils.hasText(email.getSmtp().getHost())) {
             throw new MessageDeliveryException("SMTP host is not configured");
@@ -40,6 +40,6 @@ public class SmtpEmailMessageService implements EmailMessageService {
         if (!StringUtils.hasText(email.getFrom())) {
             throw new MessageDeliveryException("Email sender address is not configured");
         }
-        SmtpEmailDelivery.send(mailSender, email.getFrom(), "SMTP", recipients, subject, body, attachments);
+        SmtpEmailDelivery.send(mailSender, email.getFrom(), "SMTP", messageId, recipients, subject, body, attachments);
     }
 }

@@ -2,6 +2,7 @@ package com.fse.fsenotification.integration.email.messaging.service;
 
 import com.fse.fsenotification.modules.message.domain.MessageAttachment;
 import com.fse.fsenotification.modules.message.sender.MessageDeliveryException;
+import com.fse.fsenotification.util.MessageLogSanitizer;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +20,10 @@ final class SmtpEmailDelivery {
     private SmtpEmailDelivery() {
     }
 
-    static void send(JavaMailSender mailSender, String fromAddress, String provider,
+    static void send(JavaMailSender mailSender, String fromAddress, String provider, Long messageId,
                      List<String> recipients, String subject, String body, List<MessageAttachment> attachments) {
-        MimeMessage message = mailSender.createMimeMessage();
         try {
+            MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, !attachments.isEmpty(),
                     StandardCharsets.UTF_8.name());
             helper.setFrom(fromAddress);
@@ -34,10 +35,17 @@ final class SmtpEmailDelivery {
                 helper.addAttachment(attachment.fileName(), new ByteArrayResource(attachment.content()),
                         attachment.contentType());
             }
+            log.info("{} email request: message={}, from={}, recipients={}, subject={}, body={}, attachmentCount={}",
+                    provider, messageId, MessageLogSanitizer.maskRecipient(fromAddress),
+                    MessageLogSanitizer.maskRecipients(recipients), MessageLogSanitizer.escape(subject),
+                    MessageLogSanitizer.escape(body), attachments.size());
             mailSender.send(message);
-            log.info("{} accepted email for {} recipient(s) with {} attachment(s)", provider,
-                    recipients.size(), attachments.size());
+            log.info("{} email response: message={}, status=accepted, recipientCount={}, attachmentCount={}",
+                    provider, messageId, recipients.size(), attachments.size());
         } catch (MessagingException | MailException | IllegalArgumentException exception) {
+            log.warn("{} email response: message={}, status=failed, exception={}, reason={}", provider, messageId,
+                    exception.getClass().getSimpleName(),
+                    MessageLogSanitizer.sanitizeResponse(exception.getMessage(), recipients));
             throw new MessageDeliveryException(provider + " email delivery failed", exception);
         }
     }

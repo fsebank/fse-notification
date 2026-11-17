@@ -6,6 +6,7 @@ import com.fse.fsenotification.integration.email.messaging.service.EmailMessageS
 import com.fse.fsenotification.integration.sms.messaging.service.MessageService;
 import com.fse.fsenotification.modules.message.domain.Message;
 import com.fse.fsenotification.modules.message.enums.MessageChannel;
+import com.fse.fsenotification.util.MessageLogSanitizer;
 import com.fse.fsenotification.util.NotificationProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -54,19 +55,32 @@ public class MessageDeliveryHelper implements MessageSender {
         }
 
         SendSMSRequestDto request = SendSMSRequestDto.builder()
+                .messageId(message.getId())
                 .message(message.getBody())
                 .sender(message.getSenderId())
                 .recipient(String.join(",", message.getRecipientList()))
                 .build();
+        log.info("SMS request: message={}, provider={}, recipientCount={}, recipients={}, sender={}, body={}",
+                message.getId(), smsProviderName, message.getRecipientCount(),
+                MessageLogSanitizer.maskRecipients(message.getRecipientList()),
+                MessageLogSanitizer.maskRecipient(message.getSenderId()),
+                MessageLogSanitizer.escape(message.getBody()));
         SendSMSResponseDto response = provider.sendSMS(request);
         if (response == null || !StringUtils.hasText(response.getStatus())
                 || !"success".equalsIgnoreCase(response.getStatus())) {
-            String status = response == null ? "no response" : response.getStatus();
+            String status = response == null ? "no response"
+                    : MessageLogSanitizer.sanitizeResponse(response.getStatus(), message.getRecipientList());
+            log.warn("SMS response: message={}, provider={}, status={}, providerMessageId={}",
+                    message.getId(), smsProviderName,
+                    status,
+                    response == null ? null : MessageLogSanitizer.escape(response.getMessageId()));
             throw new MessageDeliveryException("%s failed to send SMS: %s".formatted(smsProviderName, status));
         }
 
-        log.info("SMS message {} accepted by {} for {} recipient(s)", message.getId(), smsProviderName,
-                message.getRecipientCount());
+        log.info("SMS response: message={}, provider={}, status={}, providerMessageId={}, recipientCount={}",
+                message.getId(), smsProviderName,
+                MessageLogSanitizer.escape(response.getStatus()),
+                MessageLogSanitizer.escape(response.getMessageId()), message.getRecipientCount());
     }
 
     private void sendEmail(Message message) {
@@ -81,7 +95,7 @@ public class MessageDeliveryHelper implements MessageSender {
                     .formatted(emailProviderName, emailProviders.keySet()));
         }
 
-        provider.sendEmail(message.getRecipientList(), message.getSubject(), message.getBody(),
+        provider.sendEmail(message.getId(), message.getRecipientList(), message.getSubject(), message.getBody(),
                 message.getAttachments());
         log.info("Email message {} accepted by {} for {} recipient(s)", message.getId(), emailProviderName,
                 message.getRecipientCount());

@@ -7,5 +7,5 @@ import java.util.List;
 /** Sends a bulk email and any attachments through one configured provider. */
 public interface EmailMessageService {
 
-    void sendEmail(List<String> recipients, String subject, String body, List<MessageAttachment> attachments);
+    void sendEmail(Long messageId, List<String> recipients, String subject, String body, List<MessageAttachment> attachments);
 }

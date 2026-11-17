@@ -18,8 +18,10 @@ import com.fse.fsenotification.modules.message.enums.MessageChannel;
 import com.fse.fsenotification.modules.message.enums.MessageStatus;
 import com.fse.fsenotification.modules.message.repository.MessageRepository;
 import com.fse.fsenotification.modules.message.sender.LoggingMessageSender;
+import com.fse.fsenotification.modules.message.sender.MessageDeliveryException;
 import com.fse.fsenotification.modules.message.sender.MessageSender;
 import com.fse.fsenotification.security.PartnerPrincipal;
+import com.fse.fsenotification.util.MessageLogSanitizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -157,9 +159,15 @@ public class MessageServiceImpl implements MessageService {
         try {
             senders.get(saved.getChannel()).send(saved);
         } catch (RuntimeException ex) {
-            failure = truncate(ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage());
-            log.warn("{} message {} for {} failed: {}", saved.getChannel(), saved.getId(), partner.clientId(),
-                    failure, ex);
+            String reason = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
+            failure = truncate(MessageLogSanitizer.sanitizeResponse(reason, saved.getRecipientList()));
+            if (ex instanceof MessageDeliveryException) {
+                log.warn("{} message {} for {} failed: {}", saved.getChannel(), saved.getId(), partner.clientId(),
+                        failure);
+            } else {
+                log.warn("{} message {} for {} failed: {}", saved.getChannel(), saved.getId(), partner.clientId(),
+                        failure, ex);
+            }
         }
 
         // 3. Record the outcome; refund on failure.
