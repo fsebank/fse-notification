@@ -57,6 +57,7 @@ public class AfricasTalkingMessageService implements MessageService {
         if (response != null) {
             for (int i = 0; i < response.size(); i++) {
                 Recipient recipient = response.get(i);
+                log.info("Africa's Talking Raw SMS response: {}", recipient.toString());
                 String maskedRecipient = i < formattedRecipients.length
                         ? MessageLogSanitizer.maskRecipient(formattedRecipients[i]) : "<unmatched>";
                 String status = recipient == null || recipient.status == null ? "no response"
